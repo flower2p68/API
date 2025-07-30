@@ -20,9 +20,10 @@ app.get('/usuarios', async(req, res) => {
     if(req.query){
         users= await prisma.user.findMany({ 
             where:{
-                name:req.query.name,
+                fullname:req.query.fullname,
                 age:req.query.age,
-                email:req.query.email
+                email:req.query.email,
+                pass:req.query.pass
             }
         })}else{
             users=await prisma.user.findMany()
@@ -40,14 +41,18 @@ app.delete('/usuarios/:id', async(req,res)=>{
 })
 
 app.post('/usuarios', async(req,res)=>{
+    const { age, email, fullname, pass} = req.body;
+        
+    const pashash = await bcrypt.hash(pass,10);
     await prisma.user.create({
         data: {
-        age:req.body.age,
-        email:req.body.email,
-        name:req.body.name
+        age,
+        email,
+        fullname,
+        pass:pashash
     }
 })
-    res.status(201).json(req.body)
+    res.status(201).json(req.body, "Usuario criado com sucesso")
 })
 
 app.put('/usuarios/:id', async(req,res)=>{
@@ -58,7 +63,7 @@ app.put('/usuarios/:id', async(req,res)=>{
         data:{
             age:req.body.age,
             email:req.body.email,
-            name:req.body.name
+            fullname:req.body.fullname
         }
         
     })
