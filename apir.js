@@ -1,15 +1,19 @@
-import express from 'express';
-import { PrismaClient } from '@prisma/client';
-import { Prisma } from '@prisma/client';
-
+const { PrismaClient, Prisma } = require('@prisma/client');
 const prisma = new PrismaClient()
-
 const https = require('https');
 const fs = require('fs');
 const express = require('express');
+const helmet = require('helmet');
+
 const app = express();
 
 app.use(express.json());
+app.use(helmet());
+
+const options = {
+    key:fs.readFileSync('key.pem'),
+    cert:fs.readFileSync('cert.pem'),
+};
 
 app.get('/usuarios', async(req, res) => {
     let users = [];
