@@ -4,7 +4,11 @@ import { Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient()
 
+const https = require('https');
+const fs = require('fs');
+const express = require('express');
 const app = express();
+
 app.use(express.json());
 
 app.get('/usuarios', async(req, res) => {
