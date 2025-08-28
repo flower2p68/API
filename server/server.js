@@ -1,51 +1,63 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+const prisma = new PrismaClient()
 
 const app = express();
-const prisma = new PrismaClient();
+app.use(express.json());
 
-app.use(express.json()); // permite req.body em JSON
+app.get('/usuarios', async(req, res) => {
+    let users = [];
+    if(req.query){
+        users= await prisma.user.findMany({ 
+            where:{
+                name:req.query.name,
+                age:req.query.age,
+                email:req.query.email
+            }
+        })}else{
+            users=await prisma.user.findMany()
+        }
+    res.status(200).json(users)
+})
 
-// Criar usuário
-app.post('/usuario', async (req, res) => {
-  const { name, email } = req.body;
-  const usuario = await prisma.usuario.create({
-    data: { name, email }
+app.delete('/usuarios/:id', async(req,res)=>{
+    await prisma.user.delete({
+    where:{
+        id:req.params.id
+    }
+})
+    res.status(200).json('Usuario deletado')
+})
+
+app.post('/usuarios', async(req,res)=>{
+    await prisma.user.create({
+        data: {
+        age:req.body.age,
+        email:req.body.email,
+        name:req.body.name
+    }
+})
+    res.status(201).json(req.body)
+})
+
+app.put('/usuarios/:id', async(req,res)=>{
+    await prisma.user.update({
+        where:{
+            id:req.params.id
+        },
+        data:{
+            age:req.body.age,
+            email:req.body.email,
+            name:req.body.name
+        }
+        
+    })
+    res.status(201).json(req.body)
+})
+
+
+app.listen(5050, function() {
+    console.log("servidor rodando");
   });
-  res.status(201).json(usuario);
-});
-
-// Listar todos usuários
-app.get('/usuario', async (req, res) => {
-  const usuarios = await prisma.usuario.findMany();
-  res.json(usuarios);
-});
-
-// Buscar usuário por ID(id vira variavel)
-app.get('/usuario/:id', async (req, res) => {
-  const { id } = req.params;
-  const usuario = await prisma.usuario.findUnique({ where: { id: parseInt(id) } });
-  if (!usuario) return res.status(404).send('Usuário não encontrado');
-  res.json(usuario);
-});
-
-// Atualizar usuário
-app.put('/usuario/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name, email } = req.body;
-  const usuario = await prisma.usuario.update({
-    where: { id: parseInt(id) },
-    data: { name, email }
-  });
-  res.json(usuario);
-});
-
-// Deletar usuário
-app.delete('/usuario/:id', async (req, res) => {
-  const { id } = req.params;
-  await prisma.usuario.delete({ where: { id: parseInt(id) } });
-  res.status(204).send();
-});
-
-
-app.listen(3000, () => console.log('Servidor rodando em http://localhost:3000'));
